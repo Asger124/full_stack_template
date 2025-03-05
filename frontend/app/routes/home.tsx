@@ -1,5 +1,6 @@
 import type { Route } from "./+types/home";
 import { Login } from "../pages/login";
+import '../app.css';
 import { Welcome } from "../welcome/welcome";
 
 
