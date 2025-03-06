@@ -1,14 +1,32 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import { Welcome } from "../welcome/welcome";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Logging in with:", { email, password });
-    // Add authentication logic here
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+    
+    if(email.includes("@") && passwordRegex.test(password)) {
+
+      console.log("login successfull");
+
+      navigate("/homepage");
+    } else {
+      console.log("handle me later");
+
+      }
+      
   };
+
+
+    // Add authentication logic here
+  
 
   return (
     <div className="flex flex-col items-center h-screen justify-screen pt-20">

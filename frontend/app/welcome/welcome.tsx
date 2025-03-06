@@ -87,3 +87,5 @@ const resources = [
     ),
   },
 ];
+
+export default Welcome;
