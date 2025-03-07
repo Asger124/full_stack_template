@@ -50,7 +50,7 @@ export default function App() {
   return(
     <div>
       {!hidenavpaths.includes(location.pathname) && <Navbar/>}
-      <Outlet />;
+      <Outlet />
     </div>
   );
 }
