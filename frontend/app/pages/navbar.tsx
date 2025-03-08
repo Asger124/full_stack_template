@@ -11,7 +11,7 @@ return (
 <div className="flex space-x-6">
   <Link to="/lægetyper" className="hover:text-blue-500">Vores lægetyper</Link>
   <Link to="/vagttyper" className="hover:text-blue-500">Vores vagttyper</Link>
-  <Link to="/feature-three" className="hover:text-blue-500">Mine læger</Link>
+  <Link to="/minelæger" className="hover:text-blue-500">Mine læger</Link>
   <Link to="/" className="hover:text-blue-500">log ud</Link>
 </div>
 </nav>

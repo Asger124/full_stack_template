@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactHTMLElement, useState } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table"
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -6,39 +6,38 @@ import { EditIcon, PlusCircle, SaveIcon, Trash2Icon } from "lucide-react";
 
 interface Row {
   id: number;
-  type: string;
-  color: string;
+  name: string;
+  email: string;
+  type:string; 
 }
 
 export default function EditableTable() {
 
-  const savedRows = JSON.parse(localStorage.getItem('rows') || '[]');
-  const [rows, setRows] = useState<Row[]>(savedRows);
-
+  const [rows, setRows] = useState<Row[]>([ { id: 1, name: "John Doe", email: "", type: "" } ]);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    localStorage.setItem('rows', JSON.stringify(rows));
-  }, [rows]);
 
   const handleAddRow = () => {
-    const newRow: Row = { id: Date.now(), type: "", color: "" };
+    const newRow: Row = { id: Date.now(), name: "", email: "", type: "" };
     setRows([...rows, newRow]);
     setEditingId(newRow.id);
   };
+
+
 
   const handleEdit = (id: number) => {
     setEditingId(id);
   };
 
-  const handleSave = (id: number, type: string, color: string) => {
-    setRows(rows.map(row => row.id === id ? { ...row, type, color } : row));
+  const handleSave = (id: number, name: string, email: string, type:string) => {
+    setRows(rows.map(row => row.id === id ? { ...row, name, email, type } : row));
     setEditingId(null);
   };
 
   const handleDelete = (id: number) => {
     setRows(rows.filter(row => row.id !== id));
   };
+  
 
   return (
     <div className="flex flex-col justify-center items-center h-screen  bg-gray-100">
@@ -50,8 +49,9 @@ export default function EditableTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Lægetype</TableHead>
-            <TableHead>Farve</TableHead>
+            <TableHead>Navn</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead>Rediger/Slet</TableHead>
           </TableRow>
         </TableHeader>
@@ -60,26 +60,29 @@ export default function EditableTable() {
             <TableRow key={row.id}>
               <TableCell>
                 {editingId === row.id ? (
-                  <Input defaultValue={row.type} onChange={(e) => row.type = e.target.value} />
+                  <Input defaultValue={row.name} onChange={(e) => row.name = e.target.value} />
                 ) : (
                   row.type
                 )}
               </TableCell>
               <TableCell>
                 {editingId === row.id ? (
-                  <Input defaultValue={row.color} onChange={(e) => row.color = (e.target.value)} />
+                  <Input
+                  type = "email" defaultValue = {row.email} onChange={(e) => row.email = e.target.value} />
                 ) : (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-full border border-gray-300 ml-2"
-                        style={{ backgroundColor: row.color.toLowerCase() }}
-                      />
-                    </div>
+                    row.email
                 )}
               </TableCell>
               <TableCell>
                 {editingId === row.id ? (
-                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.type, row.color)}>
+                  <Input defaultValue={row.type} onChange={(e) => row.type = (e.target.value)} />
+                ) : (
+                    row.type
+                )}
+              </TableCell>
+              <TableCell>
+                {editingId === row.id ? (
+                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.name, row.email, row.type)}>
                     <SaveIcon /></Button>
                 ) : (
                   <>

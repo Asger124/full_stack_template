@@ -25,7 +25,7 @@ export default function Dashboard() {
       title: "Mine læger",
       description: "Klik her for at se afdelingens læger.",
       image: afdeling,
-      path: "/læger",
+      path: "/minelæger",
       icon: <ArrowRightCircleIcon size={20} />,
     },
   ];
