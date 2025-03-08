@@ -6,16 +6,18 @@ import { EditIcon, PlusCircle, SaveIcon, Trash2Icon } from "lucide-react";
 
 interface Row {
   id: number;
-  type: string;
+  name: string;
+  StartTime: string;
+  Endtime: string;
   color: string;
 }
 
 export default function EditableTable() {
-  const [rows, setRows] = useState<Row[]>([ { id: 1, type: "John Doe", color: "" } ]);
+  const [rows, setRows] = useState<Row[]>([ { id: 1, name: "John Doe", StartTime: "", Endtime:"",color: "" } ]);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const handleAddRow = () => {
-    const newRow: Row = { id: Date.now(), type: "", color: "" };
+    const newRow: Row = { id: Date.now(), name: "", StartTime: "", Endtime: "", color: "" };
     setRows([...rows, newRow]);
     setEditingId(newRow.id);
   };
@@ -24,8 +26,8 @@ export default function EditableTable() {
     setEditingId(id);
   };
 
-  const handleSave = (id: number, type: string, color: string) => {
-    setRows(rows.map(row => row.id === id ? { ...row, type, color } : row));
+  const handleSave = (id: number, name: string, StartTime:string, color: string) => {
+    setRows(rows.map(row => row.id === id ? { ...row, name, StartTime, color } : row));
     setEditingId(null);
   };
 
@@ -43,7 +45,8 @@ export default function EditableTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Lægetype</TableHead>
+            <TableHead>Navn</TableHead>
+            <TableHead>Tidspunkt</TableHead>
             <TableHead>Farve</TableHead>
             <TableHead>Rediger/Slet</TableHead>
           </TableRow>
@@ -53,9 +56,27 @@ export default function EditableTable() {
             <TableRow key={row.id}>
               <TableCell>
                 {editingId === row.id ? (
-                  <Input defaultValue={row.type} onChange={(e) => row.type = e.target.value} />
+                  <Input defaultValue={row.name} onChange={(e) => row.name = e.target.value} />
                 ) : (
-                  row.type
+                  row.name
+                )}
+              </TableCell>
+              <TableCell>
+                {editingId === row.id ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="time"
+                      defaultValue={row.StartTime} onChange={(e) => row.StartTime = e.target.value}
+                      className="text-center"
+                    />
+                    <span>-</span>
+                    <Input
+                      type="time" defaultValue={row.Endtime} onChange={(e)=> row.Endtime = e.target.value}
+                      className="text-center"
+                    />
+                  </div>
+                ) : (
+                  `${row.StartTime} - ${row.Endtime}`
                 )}
               </TableCell>
               <TableCell>
@@ -72,7 +93,7 @@ export default function EditableTable() {
               </TableCell>
               <TableCell>
                 {editingId === row.id ? (
-                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.type, row.color)}>
+                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.name, row.StartTime, row.color)}>
                     <SaveIcon /></Button>
                 ) : (
                   <>
