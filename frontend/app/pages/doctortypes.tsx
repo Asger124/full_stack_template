@@ -11,15 +11,25 @@ interface Row {
 }
 
 export default function EditableTable() {
+ 
+  const [rows, setRows] = useState<Row[]>(() => {
+  if (typeof window !== 'undefined') {
 
-  const savedRows = JSON.parse(localStorage.getItem('rows') || '[]');
-  const [rows, setRows] = useState<Row[]>(savedRows);
+    const route = window.location.pathname
+    const stored = localStorage.getItem(route);
+    return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+  
+  useEffect (() => {
+    if (typeof window !== 'undefined') {
+      const route = window.location.pathname
+      localStorage.setItem(route, JSON.stringify(rows));
+    }
+  }, [rows]);
 
   const [editingId, setEditingId] = useState<number | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem('rows', JSON.stringify(rows));
-  }, [rows]);
 
   const handleAddRow = () => {
     const newRow: Row = { id: Date.now(), type: "", color: "" };
@@ -40,13 +50,15 @@ export default function EditableTable() {
     setRows(rows.filter(row => row.id !== id));
   };
 
+
+
   return (
-    <div className="flex flex-col justify-center items-center h-screen  bg-gray-100">
-      <h1 className="font-semibold text-gray-900 text-center pb-15"> 
+    <div className="flex flex-col justify-center items-center h-screen">
+      <h1 className="font-semibold text-gray-700 text-center mb-4"> 
         Velkommen til siden 'Lægetyper' <br /> 
         her kan du tilføje, redigere og slette lægetyper
       </h1>
-      <div className=" w-full max-w-3xl bg-white shadow-lg rounded-lg p-6 overflow-auto max-h-[80vh]">
+      <div className="w-full max-w-3xl bg-white shadow-lg rounded-lg p-6 overflow-auto max-h-[80vh] mb-30">
       <Table>
         <TableHeader>
           <TableRow>
@@ -98,4 +110,5 @@ export default function EditableTable() {
     </div>
     </div>
   );
-}
+  }
+
