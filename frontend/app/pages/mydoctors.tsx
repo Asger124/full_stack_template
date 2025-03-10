@@ -4,6 +4,14 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { EditIcon, PlusCircle, SaveIcon, Trash2Icon } from "lucide-react";
 
+/* 
+Documentation for data-table installed from shadcn-ui: https://ui.shadcn.com/docs/components/data-table
+
+The components installed from shadcn are open for modification. 
+They reside in the components directory at ./app/components 
+
+*/
+
 interface Row {
   id: number;
   name: string;
@@ -13,7 +21,17 @@ interface Row {
 
 export default function EditableTable() {
 
+
+  /* statuful component to update rows, which is our array
+    Initilize the array with date from localstorage, if any.
+    data from local storage is found through pathname key.
+  
+    Because of localstorage only existing on client side,
+    a guard check ensures that it is only run on client side,
+    with no guard rerender will throw exception.  */
+
   const [rows, setRows] = useState<Row[]>(() => {
+    //ensure to only run on client side
     if(typeof window !== 'undefined' ){
 
       const route = window.location.pathname;
@@ -22,7 +40,10 @@ export default function EditableTable() {
     };
     return [];
   });
-
+   
+  //Runs when rows changes. Store the array rows in localstorage
+  //ensures that data persists across page reloads 
+  
   useEffect (() => {
       if (typeof window !== 'undefined') {
         const route = window.location.pathname;
@@ -30,6 +51,8 @@ export default function EditableTable() {
       }
     }, [rows]);
 
+
+  //Editing id can either be null or a number
   const [editingId, setEditingId] = useState<number | null>(null);
 
 
@@ -39,17 +62,17 @@ export default function EditableTable() {
     setEditingId(newRow.id);
   };
 
-
-
+  //Match this with a row.id if editing
   const handleEdit = (id: number) => {
     setEditingId(id);
   };
 
+  //create a new row object and set editing id to null
   const handleSave = (id: number, name: string, email: string, type:string) => {
     setRows(rows.map(row => row.id === id ? { ...row, name, email, type } : row));
     setEditingId(null);
   };
-
+  // return rows without specific entry(id) in it 
   const handleDelete = (id: number) => {
     setRows(rows.filter(row => row.id !== id));
   };
@@ -71,6 +94,7 @@ export default function EditableTable() {
             <TableHead>Rediger/Slet</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.id}>
@@ -81,6 +105,7 @@ export default function EditableTable() {
                   row.name
                 )}
               </TableCell>
+
               <TableCell>
                 {editingId === row.id ? (
                   <Input
@@ -89,6 +114,7 @@ export default function EditableTable() {
                     row.email
                 )}
               </TableCell>
+
               <TableCell>
                 {editingId === row.id ? (
                   <Input defaultValue={row.type} onChange={(e) => row.type = (e.target.value)} />
@@ -96,6 +122,7 @@ export default function EditableTable() {
                     row.type
                 )}
               </TableCell>
+
               <TableCell>
                 {editingId === row.id ? (
                   <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.name, row.email, row.type)}>
@@ -109,8 +136,10 @@ export default function EditableTable() {
                   </>
                 )}
               </TableCell>
+
             </TableRow>
           ))}
+
         </TableBody>
       </Table>
       <Button className="flex-justify-end mt-4 hover:cursor-pointer" variant="outline" onClick={handleAddRow}> <PlusCircle />Tilføj her</Button>
