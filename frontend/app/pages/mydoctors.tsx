@@ -78,7 +78,7 @@ export default function EditableTable() {
                 {editingId === row.id ? (
                   <Input defaultValue={row.name} onChange={(e) => row.name = e.target.value} />
                 ) : (
-                  row.type
+                  row.name
                 )}
               </TableCell>
               <TableCell>
