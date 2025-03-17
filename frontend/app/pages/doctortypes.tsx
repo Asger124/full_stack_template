@@ -16,7 +16,6 @@ They reside in the components directory at ./app/components
 interface Row {
   id: number;
   type: string;
-  color: string;
 }
 
 export default function EditableTable() {
@@ -53,13 +52,47 @@ export default function EditableTable() {
   //Editing id can either be null or a number
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  const [dragRow, setDragRow] = useState<number | null> (null); 
+
+  const [hoverIndex, setHoverIndex] = useState<number | null> (null);
+
+  const handleDragRow = ( event:React.DragEvent<HTMLTableRowElement>, index:number) => {
+    setDragRow(index);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLTableRowElement>, index:number) => {
+    event.preventDefault(); // Required for dropping
+    setHoverIndex(index)
+    
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLTableRowElement>, index:number) => {
+    event.preventDefault(); 
+    if (dragRow == null || hoverIndex == null ) return;
+    // updated rows are set to the current row array
+    const updatedRows = [...rows] 
+
+    // Splice returns an array with the element dragrow removed. A deconstructing operator is used to 'extract' the element from array
+    // deconstructing operator --> [movedRows]
+    const [movedRows] = updatedRows.splice(dragRow,1) 
+
+    // Update current array by inserting the element(movedRows) at a specific index
+    updatedRows.splice(index,0,movedRows) 
+    
+    //Update Rows array and set the dragged row to null
+    setRows(updatedRows);
+    setDragRow(null);
+    setHoverIndex(null);
+  }
+
 
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
 
       if (editingId!=null) {
         const confirmation = window.confirm("You have unsaved changes, do you really want to leave?");
-        
+
         //Confirmation returns bool based on user interaction. If user clicks "Genindlæs/ok" then it is set to true,
         //otherwise false. If it evaluates to false we prevent a reload and stay on page.
         if (!confirmation) {
@@ -76,7 +109,7 @@ export default function EditableTable() {
 
 
   const handleAddRow = () => {
-    const newRow: Row = { id: Date.now(), type: "", color: "" };
+    const newRow: Row = { id: Date.now(), type: ""};
     setRows([...rows, newRow]);
     setEditingId(newRow.id);
   };
@@ -88,8 +121,8 @@ export default function EditableTable() {
   };
  
   //create a new row object and set editing id to null
-  const handleSave = (id: number, type: string, color: string) => {
-    setRows(rows.map(row => row.id === id ? { ...row, type, color } : row));
+  const handleSave = (id: number, type: string) => {
+    setRows(rows.map(row => row.id === id ? { ...row, type } : row));
     setEditingId(null);
   };
   
@@ -114,14 +147,26 @@ export default function EditableTable() {
         <TableHeader>
           <TableRow>
             <TableHead>Lægetype</TableHead>
-            <TableHead>Farve</TableHead>
             <TableHead>Rediger/Slet</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id}>
+          {rows.map((row,index) => (
+            <TableRow 
+            key={row.id}
+            draggable
+            onDragStart={(e) => handleDragRow(e,index)}
+            onDragOver={(e) => handleDragOver(e,index)}
+            onDrop={(e) => handleDrop(e,index)}
+            onDragEnd={() => {setHoverIndex(null); setDragRow(null);}}
+            style={{
+              cursor: 'grab',
+              backgroundColor: hoverIndex === index ? "#74bdfc" : "",
+              boxShadow: dragRow === index ? '5px 0px 15px rgba(0,0,0,0.2)' : 'none',
+            
+            }}
+          >
               <TableCell>
                 {editingId === row.id ? (
                   <Input defaultValue={row.type} onChange={(e) => row.type = e.target.value} />
@@ -129,23 +174,9 @@ export default function EditableTable() {
                   row.type
                 )}
               </TableCell>
-
               <TableCell>
                 {editingId === row.id ? (
-                  <Input defaultValue={row.color} onChange={(e) => row.color = (e.target.value)} />
-                ) : (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-full border border-gray-300 ml-2"
-                        style={{ backgroundColor: row.color.toLowerCase() }}
-                      />
-                    </div>
-                )}
-              </TableCell>
-
-              <TableCell>
-                {editingId === row.id ? (
-                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.type, row.color)}>
+                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.type)}>
                     <SaveIcon /></Button>
                 ) : (
                   <>
