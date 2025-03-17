@@ -49,8 +49,31 @@ export default function EditableTable() {
     }
   }, [rows]);
 
+
   //Editing id can either be null or a number
   const [editingId, setEditingId] = useState<number | null>(null);
+
+
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+
+      if (editingId!=null) {
+        const confirmation = window.confirm("You have unsaved changes, do you really want to leave?");
+        
+        //Confirmation returns bool based on user interaction. If user clicks "Genindlæs/ok" then it is set to true,
+        //otherwise false. If it evaluates to false we prevent a reload and stay on page.
+        if (!confirmation) {
+          event.preventDefault(); 
+        }
+      }
+  };
+  window.addEventListener("beforeunload", beforeUnload);
+    
+  return () => {
+    window.removeEventListener("beforeunload", beforeUnload);
+  };
+}, [editingId]);
+
 
   const handleAddRow = () => {
     const newRow: Row = { id: Date.now(), type: "", color: "" };
@@ -71,8 +94,11 @@ export default function EditableTable() {
   };
   
   // return rows without specific entry(id) in it
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number, name:string) => {
+  const confirmed = window.confirm(`Er du sikker på at du vil slette "${name}"?`);
+    if (confirmed) {
     setRows(rows.filter(row => row.id !== id));
+    }
   };
 
 
@@ -125,7 +151,7 @@ export default function EditableTable() {
                   <>
                     <Button className="hover:cursor-pointer" variant= "secondary"  onClick={() => handleEdit(row.id)}>
                       <EditIcon /></Button>
-                    <Button className="ml-2 hover:cursor-pointer" variant="destructive" size="sm" onClick={() => handleDelete(row.id)}>
+                    <Button className="ml-2 hover:cursor-pointer" variant="destructive" size="sm" onClick={() => handleDelete(row.id, row.type)}>
                       <Trash2Icon /></Button>
                   </>
                 )}
