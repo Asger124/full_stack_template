@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table"
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -38,6 +38,20 @@ export default function EditableTable() {
     return [];
   });
 
+
+  //Editing id can either be null or a number
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const [dragRow, setDragRow] = useState<number | null> (null); 
+
+  const [hoverIndex, setHoverIndex] = useState<number | null> (null);
+
+  // const [originalId, setOriginalId] = useState<number | null>(null);
+
+  const [originalType, setOriginalType] = useState<string | null>(null);
+
+  //const [keyPressed, setKeyPressed] = useState('');
+
   //Runs when rows changes. Store the array rows in localstorage
   //ensures that data persists across page reloads 
   
@@ -48,13 +62,26 @@ export default function EditableTable() {
     }
   }, [rows]);
 
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
 
-  //Editing id can either be null or a number
-  const [editingId, setEditingId] = useState<number | null>(null);
+      if (editingId!=null) {
+        const confirmation = window.confirm("You have unsaved changes, do you really want to leave?");
 
-  const [dragRow, setDragRow] = useState<number | null> (null); 
+        //Confirmation returns bool based on user interaction. If user clicks "Genindlæs/ok" then it is set to true,
+        //otherwise false. If it evaluates to false we prevent a reload and stay on page.
+        if (!confirmation) {
+          event.preventDefault(); 
+        }
+      }
+  };
+  window.addEventListener("beforeunload", beforeUnload);
+    
+  return () => {
+    window.removeEventListener("beforeunload", beforeUnload);
+  };
+}, [editingId]);
 
-  const [hoverIndex, setHoverIndex] = useState<number | null> (null);
 
   const handleDragRow = ( event:React.DragEvent<HTMLTableRowElement>, index:number) => {
     setDragRow(index);
@@ -87,27 +114,6 @@ export default function EditableTable() {
   }
 
 
-  useEffect(() => {
-    const beforeUnload = (event: BeforeUnloadEvent) => {
-
-      if (editingId!=null) {
-        const confirmation = window.confirm("You have unsaved changes, do you really want to leave?");
-
-        //Confirmation returns bool based on user interaction. If user clicks "Genindlæs/ok" then it is set to true,
-        //otherwise false. If it evaluates to false we prevent a reload and stay on page.
-        if (!confirmation) {
-          event.preventDefault(); 
-        }
-      }
-  };
-  window.addEventListener("beforeunload", beforeUnload);
-    
-  return () => {
-    window.removeEventListener("beforeunload", beforeUnload);
-  };
-}, [editingId]);
-
-
   const handleAddRow = () => {
     const newRow: Row = { id: Date.now(), type: ""};
     setRows([...rows, newRow]);
@@ -115,16 +121,21 @@ export default function EditableTable() {
   };
 
   //Match this with a row.id if editing
-
   const handleEdit = (id: number, type:string) => {
-
+   
     if(editingId!= null && editingId !==id) {
     const confirm = window.confirm(`Hov! Du er i gang med at redigere en lægetype. Vil du gemme dine ændringer?`);
+
     if(confirm){
     handleSave(id,type);
     } else {
-      return 
+      handleAbort(editingId) 
     }
+  }
+
+  const rowToEdit = rows.find((row) => row.id === id);
+  if (rowToEdit) {
+    setOriginalType(rowToEdit.type); // Save the original type value
   }
   setEditingId(id);
   };
@@ -133,7 +144,19 @@ export default function EditableTable() {
   const handleSave = (id: number, type: string) => {
     setRows(rows.map(row => row.id === id ? { ...row, type } : row));
     setEditingId(null);
+    setOriginalType(null);
   };
+
+  
+  const handleAbort = (id:number) => {
+    if (originalType) {
+      // Revert to the original row state
+      setRows(rows.map(row => row.id === id ? { ...row, type:originalType} : row));
+    }
+    setEditingId(null); // Stop editing
+    setOriginalType(null); // Clear the original row after abort
+  };
+
   
   // return rows without specific entry(id) in it
   const handleDelete = (id: number, name:string) => {
@@ -141,8 +164,39 @@ export default function EditableTable() {
     if (confirmed) {
     setRows(rows.filter(row => row.id !== id));
     }
+    setEditingId(null);
   };
 
+  const handleKeyDown = (event:React.KeyboardEvent<HTMLInputElement>, id:number, type:string) => {
+    if(event.key == "Enter") {
+      handleSave(id,type);
+    } else if (event.key == "Escape"){
+      handleAbort(id);
+    } else if (event.key == "Delete") {
+      handleDelete(id,type); 
+    }
+    
+  };
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      // Check for Ctrl + N (or Cmd + N on Mac)
+      if ( (event.ctrlKey || event.metaKey) && event.key === 'a') {
+        event.preventDefault(); // Prevent default (new tab behavior)
+        handleAddRow(); // Add a new row
+      }
+    };
+
+    // Attach event listener for global keyboard shortcuts (Ctrl + N)
+    window.addEventListener('keydown', handleGlobalKeyDown);
+
+    // Cleanup on component unmount
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [rows]);
+
+  
   return (
     <div className="flex flex-col justify-center items-center h-screen">
       <h1 className="font-semibold text-gray-700 text-center mb-4"> 
@@ -176,7 +230,8 @@ export default function EditableTable() {
           >
               <TableCell>
                 {editingId === row.id ? (
-                  <Input defaultValue={row.type} onChange={(e) => row.type = e.target.value} />
+                  <Input key={row.id} defaultValue={row.type} onChange={(e) => row.type = e.target.value}
+                  onKeyDown={(e) => handleKeyDown(e,row.id,row.type)}/>
                 ) : (
                   row.type
                 )}
