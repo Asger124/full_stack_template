@@ -2,6 +2,8 @@ import {useEffect, useState } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table"
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import InfoBox  from "~/components/ui/infobox";
+
 import { EditIcon, PlusCircle, SaveIcon, Trash2Icon } from "lucide-react";
 
 
@@ -198,11 +200,9 @@ export default function EditableTable() {
 
   
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
-      <h1 className="font-semibold text-gray-700 text-center mb-4"> 
-        Velkommen til siden 'Lægetyper' <br /> 
-        her kan du tilføje, redigere og slette lægetyper
-      </h1>
+    <div className="flex flex-col justify-center items-center h-screen mt-8">
+      <InfoBox message="Her på siden kan du redigere, tilføje og slette dine lægetyper. 
+        Skal der her stå en forklaring af typer, brug af siden, eller noget helt andet?"/>
       <div className="w-full max-w-3xl bg-white shadow-lg rounded-lg p-6 overflow-auto max-h-[80vh] mb-30">
       <Table>
         <TableHeader>
