@@ -70,10 +70,10 @@ export default function EditableTable() {
   const handleDrop = (event: React.DragEvent<HTMLTableRowElement>, index:number) => {
     event.preventDefault(); 
     if (dragRow == null || hoverIndex == null ) return;
-    // updated rows are set to the current row array
+    // updated rows is a copy of the current row array
     const updatedRows = [...rows] 
 
-    // Splice returns an array with the element dragrow removed. A deconstructing operator is used to 'extract' the element from array
+    // Splice returns an array containing the removed element [dragrow]. A deconstructing operator is used to 'extract' the element from array
     // deconstructing operator --> [movedRows]
     const [movedRows] = updatedRows.splice(dragRow,1) 
 
@@ -116,8 +116,17 @@ export default function EditableTable() {
 
   //Match this with a row.id if editing
 
-  const handleEdit = (id: number) => {
-    setEditingId(id);
+  const handleEdit = (id: number, type:string) => {
+
+    if(editingId!= null && editingId !==id) {
+    const confirm = window.confirm(`Hov! Du er i gang med at redigere en lægetype. Vil du gemme dine ændringer?`);
+    if(confirm){
+    handleSave(id,type);
+    } else {
+      return 
+    }
+  }
+  setEditingId(id);
   };
  
   //create a new row object and set editing id to null
@@ -133,8 +142,6 @@ export default function EditableTable() {
     setRows(rows.filter(row => row.id !== id));
     }
   };
-
-
 
   return (
     <div className="flex flex-col justify-center items-center h-screen">
@@ -180,7 +187,7 @@ export default function EditableTable() {
                     <SaveIcon /></Button>
                 ) : (
                   <>
-                    <Button className="hover:cursor-pointer" variant= "secondary"  onClick={() => handleEdit(row.id)}>
+                    <Button className="hover:cursor-pointer" variant= "secondary"  onClick={() => handleEdit(row.id, row.type)}>
                       <EditIcon /></Button>
                     <Button className="ml-2 hover:cursor-pointer" variant="destructive" size="sm" onClick={() => handleDelete(row.id, row.type)}>
                       <Trash2Icon /></Button>

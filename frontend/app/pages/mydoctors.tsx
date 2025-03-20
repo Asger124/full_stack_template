@@ -136,10 +136,8 @@ export default function EditableTable() {
                   </>
                 )}
               </TableCell>
-
             </TableRow>
           ))}
-
         </TableBody>
       </Table>
       <Button className="flex-justify-end mt-4 hover:cursor-pointer" variant="outline" onClick={handleAddRow}> <PlusCircle />Tilføj her</Button>
