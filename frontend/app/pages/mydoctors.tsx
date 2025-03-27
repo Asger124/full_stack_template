@@ -11,12 +11,22 @@ The components installed from shadcn are open for modification.
 They reside in the components directory at ./app/components 
 
 */
+enum DoctorTypes{
+  Senior = "Overlæge",
+  DepartmentDoctor = "Afdelingslæge",
+  FirstResTemp = "1.res.vikar",
+  KThreeFour = "K3/4", 
+  KOne = "K1",
+  Intro = "Intro",
+  ResTemp  = "Res.vik",
+  None = "Sæt type her"
+}
 
 interface Row {
   id: number;
   name: string;
   email: string;
-  type:string; 
+  type:DoctorTypes; 
 }
 
 export default function EditableTable() {
@@ -55,9 +65,8 @@ export default function EditableTable() {
   //Editing id can either be null or a number
   const [editingId, setEditingId] = useState<number | null>(null);
 
-
   const handleAddRow = () => {
-    const newRow: Row = { id: Date.now(), name: "", email: "", type: "" };
+    const newRow: Row = { id: Date.now(), name: "", email: "", type: DoctorTypes.None };
     setRows([...rows, newRow]);
     setEditingId(newRow.id);
   };
@@ -68,7 +77,7 @@ export default function EditableTable() {
   };
 
   //create a new row object and set editing id to null
-  const handleSave = (id: number, name: string, email: string, type:string) => {
+  const handleSave = (id: number, name: string, email: string, type:DoctorTypes) => {
     setRows(rows.map(row => row.id === id ? { ...row, name, email, type } : row));
     setEditingId(null);
   };
@@ -81,7 +90,7 @@ export default function EditableTable() {
   return (
     <div className="flex flex-col justify-center items-center h-screen">
       <h1 className="font-semibold text-gray-700 text-center mb-4"> 
-        Velkommen til siden 'Mine læger' <br /> 
+        Velkommen til siden 'Vores læger' <br /> 
         her kan du tilføje, redigere og slette oplysninger om læger
       </h1>
       <div className=" w-full max-w-3xl bg-white shadow-lg rounded-lg p-6 overflow-auto max-h-[80vh] mb-30">
@@ -117,7 +126,14 @@ export default function EditableTable() {
 
               <TableCell>
                 {editingId === row.id ? (
-                  <Input defaultValue={row.type} onChange={(e) => row.type = (e.target.value)} />
+                  <select defaultValue={row.type} onChange={(e) => row.type = e.target.value as DoctorTypes}
+                  >
+                    {Object.values(DoctorTypes).map((doctor) => (
+                    <option key={doctor} value={doctor}>
+                      {doctor}
+                    </option>
+                  ))}
+                </select>
                 ) : (
                     row.type
                 )}

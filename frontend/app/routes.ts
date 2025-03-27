@@ -5,5 +5,5 @@ export default [index("routes/home.tsx"),
                 route("homepage", "pages/homepage.tsx"),
                 route("lægetyper", "pages/doctortypes.tsx"),
                 route("vagttyper", "pages/shifts.tsx"),
-                route("minelæger", "pages/mydoctors.tsx")
+                route("voreslæger", "pages/mydoctors.tsx")
             ] satisfies RouteConfig;

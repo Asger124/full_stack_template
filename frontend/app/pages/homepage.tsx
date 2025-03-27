@@ -22,10 +22,10 @@ export default function Dashboard() {
       icon: <ArrowRightCircleIcon size={20} />,
     },
     {
-      title: "Mine læger",
+      title: "Vores læger",
       description: "Klik her for at se afdelingens læger.",
       image: afdeling,
-      path: "/minelæger",
+      path: "/voreslæger",
       icon: <ArrowRightCircleIcon size={20} />,
     },
   ];
