@@ -3,6 +3,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { EditIcon, PlusCircle, SaveIcon, Trash2Icon } from "lucide-react";
+import InfoBox from "~/components/ui/infobox";
 
 /* 
 Documentation for data-table installed from shadcn-ui: https://ui.shadcn.com/docs/components/data-table
@@ -57,6 +58,8 @@ export default function EditableTable() {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const[originalRow, setOrignalRow] = useState<Row| null>(null); 
+
+  const[checkBox,setCheckBox] = useState("");
    
   //Runs when rows changes. Store the array rows in localstorage
   //ensures that data persists across page reloads 
@@ -90,8 +93,9 @@ export default function EditableTable() {
 
 
   const handleCheck = (id:number, checked:boolean) => {
+    if(editingId!=null) {
     setRows(rows.map(row => row.id === id ? { ...row, Status : checked? "Active" : "Inactive" } : row));
-    
+    } 
 
   }
 
@@ -99,33 +103,61 @@ export default function EditableTable() {
     const newRow: Row = { id: Date.now(), name: "", Initials:"", tag:"",  email: "", type: DoctorTypes.ResTemp, capacity: 0, Status : "Inactive"};
     setRows([...rows, newRow]);
     setEditingId(newRow.id);
+    setCheckBox(newRow.Status);
   };
 
-  //Match this with a row.id if editing
-  const handleEdit = (id: number, name: string, init:string, email: string, type:DoctorTypes, capacity:number,stat:string) => {
-   
-    if(editingId!= null && editingId !==id) {
-    const confirm = window.confirm(`Hov! Du er i gang med at redigere en lægetype. Vil du gemme dine ændringer?`);
 
+  
+  
+  /* 
+  Two main 'branches' that handleEdit can take. 
+  First branch: Check the editingId and if its not null and it is different from the id given to the method(meaning the user tries to edit another row, before saving), 
+  take action. The confirm box will appear and if the user confirms, the method will save changes made in the current row, 
+  if user does not confirm, call handleAbort(check doc for handleAbort) and return.
+
+  Second branch: if the user is editing a row that is different from the editingID, make sure to set the checbox of this row equal to status, 
+  and save the data for this row in case it is needed for handleAbort
+  */
+
+  const handleEdit = (id: number) => {
+
+    if(editingId!= null && editingId !==id) {
+   
+    const confirm = window.confirm(`Hov! Du er i gang med at redigere en lægetype. Vil du gemme dine ændringer?`);
     if(confirm){
-    handleSave(id,name,init,email,type,capacity,stat);
+
+    const currentRow = rows.find((row) => row.id === editingId);
+    if (currentRow) 
+      
+    handleSave(editingId,currentRow.name,currentRow.Initials,currentRow.email,currentRow.type,currentRow.capacity,checkBox);
     } else {
-      handleAbort(editingId) 
+      handleAbort(editingId)
+      return; 
     }
-  }
+
+  } else {
     const rowToEdit = rows.find((row) => row.id === id);
     if (rowToEdit) {
+      setCheckBox(rowToEdit.Status);
       setOrignalRow({...rowToEdit}); // Save the original type value
+      
     }
     setEditingId(id);
     };
+  }
   
-  //create a new row object and set editing id to null
-  const handleSave = (id: number, name: string, init:string, email: string, type:DoctorTypes, capacity:number,stat:string) => {
-    setRows(rows.map(row => row.id === id ? { ...row, name, init, email, type, capacity, stat } : row));
+  
+  const handleSave = (id: number, name: string, init:string, email: string, type:DoctorTypes, capacity:number, stattus:string) => {
+
+    setRows(rows.map(row => row.id === id ? { ...row, name, init, email, type, capacity, Status:stattus} : row));
     setEditingId(null);
     setOrignalRow(null);
   };
+
+  /* 
+  HandleAbort will check the controlled variable originalRow, 
+  and based on the row id it was given, revert the data for that corresponding row.
+  */
 
   const handleAbort = (id:number) => {
     if (originalRow) {
@@ -145,14 +177,41 @@ export default function EditableTable() {
       }
       setEditingId(null);
     };
+
+    const handleKeyDown = (event:React.KeyboardEvent<HTMLTableRowElement>, id:number,name:string,initialer:string,email:string, type:DoctorTypes, capacity:number, status:string) => {
+      if(event.key == "Enter") {
+        handleSave(id,name,initialer,email, type, capacity, status);
+      } else if (event.key == "Escape"){
+        handleAbort(id);
+      } else if (event.key == "Delete") {
+        handleDelete(id,type); 
+      }
+      
+    };
+  
+    useEffect(() => {
+      const handleGlobalKeyDown = (event: KeyboardEvent) => {
+
+        if ( (event.ctrlKey || event.metaKey) && event.key === 'a') {
+          event.preventDefault(); // Prevent default (new tab behavior)
+          handleAddRow(); // Add a new row
+        }
+      };
+  
+      // Attach event listener for global keyboard shortcuts (Ctrl + N)
+      window.addEventListener('keydown', handleGlobalKeyDown);
+  
+      // Cleanup on component unmount
+      return () => {
+        window.removeEventListener('keydown', handleGlobalKeyDown);
+      };
+    }, [rows]);
   
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
-      <h1 className="font-semibold text-gray-700 text-center mb-4"> 
-        Velkommen til siden 'Vores læger' <br /> 
-        her kan du tilføje, redigere og slette oplysninger om læger
-      </h1>
+    <div className="flex flex-col justify-center items-center ml-50 h-screen mt-8">
+      <InfoBox message="Velkommen til vores læger. Her på siden kan du gøre en masse forskellige sjove ting"></InfoBox>
+      
       <div className=" w-full max-w-6xl bg-white shadow-lg rounded-lg p-6 overflow-auto max-h-[80vh] mb-30">
       <Table>
         <TableHeader>
@@ -169,7 +228,7 @@ export default function EditableTable() {
 
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow key={row.id} onKeyDown={(e)=> handleKeyDown(e,row.id,row.name,row.Initials,row.email,row.type,row.capacity,checkBox)}>
               <TableCell>
                 {editingId === row.id ? (
                   <Input defaultValue={row.name} onChange={(e) => row.name = e.target.value} />
@@ -224,7 +283,7 @@ export default function EditableTable() {
 
               <TableCell>
                 {editingId === row.id ? (
-                  <Input className="w-10" type ="checkbox" checked={row.Status ==="Active"} onChange={(e) => handleCheck(row.id,e.target.checked)} />
+                  <Input className="w-10" type ="checkbox" checked={checkBox === "Active"} onChange={(e) => setCheckBox(e.target.checked? "Active" : "Inactive")} />
                 ) : (
                     row.Status
                 )}
@@ -232,11 +291,11 @@ export default function EditableTable() {
               
               <TableCell>
                 {editingId === row.id ? (
-                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.name,row.Initials, row.email, row.type, row.capacity,row.Status)}>
+                  <Button className="hover:cursor-pointer"size="sm" onClick={() => handleSave(row.id, row.name,row.Initials, row.email, row.type, row.capacity,checkBox)}>
                     <SaveIcon /></Button>
                 ) : (
                   <>
-                    <Button className="hover:cursor-pointer" variant= "secondary"  onClick={() => handleEdit(row.id,row.name,row.Initials, row.email, row.type, row.capacity,row.Status)}>
+                    <Button className="hover:cursor-pointer" variant= "secondary"  onClick={() => handleEdit(row.id)}>
                       <EditIcon /></Button>
                     <Button className="ml-2 hover:cursor-pointer" variant="destructive" size="sm" onClick={() => handleDelete(row.id,row.name)}>
                       <Trash2Icon /></Button>

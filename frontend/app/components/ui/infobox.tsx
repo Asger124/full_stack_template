@@ -18,7 +18,7 @@ const InfoBox = ({ message }: { message: string }) => {
     //ensures that component is rendered in document body - seperate from the pages that use it.
     return ReactDOM.createPortal(
     (
-     <div className="fixed top-25 left-4 bg-white border border-gray-300 shadow-lg rounded-lg p-3 max-w-xs z-50 text-gray-800 transition-all duration-300">
+     <div className="fixed top-25 left-4 bg-white border border-gray-300 shadow-lg rounded-lg p-3 max-w-3xs z-50 text-gray-800 transition-all duration-300">
         <div className="flex items-center justify-between" onClick={() => setIsExpanded(!isExpanded)}>
           <span className="font-semibold text-gray-900">Info</span>
           <ChevronDown
